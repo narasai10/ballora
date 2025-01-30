@@ -5,6 +5,7 @@ from io import BytesIO
 from PIL import ImageGrab
 import pyautogui as pg
 
+
 def capturar_tela():
     screenshot = ImageGrab.grab()
     buffer = BytesIO()
@@ -26,18 +27,23 @@ while True:
     elif comando.lower() == "start-control mouse":
         client_socket.sendall(comando.encode())  # Envia o comando para o servidor
 
+        buffer = ""  # Armazena os dados recebidos de forma parcial
+
         while True:
-        # Recebe a posição do mouse (X,Y) como string
-            data = client_socket.recv(1024).decode()
-            if data.lower() == "stop":
-                print("❌ Controle do mouse desativado pelo servidor.")
-                break  # Sai do loop de controle do mouse
+            data = client_socket.recv(1024).decode()  # Recebe os dados
+            buffer += data  # Adiciona ao buffer
 
-        # Divide a string "X,Y" para obter os valores individuais
-            mousex, mousey = map(int, data.split(','))
+            while "\n" in buffer:  # Processa todas as mensagens completas
+                linha, buffer = buffer.split("\n", 1)  # Separa a primeira linha do restante
+                valores = linha.split(',')
 
-            print(f"📍 Posição do mouse recebida -> X: {mousex}, Y: {mousey}")
-            pg.moveTo(mousex, mousey)
+                if len(valores) == 3:  # Garante que a mensagem tem o formato correto
+                    mousex, mousey, pressed_d = map(int, valores)
+                    print(f"📍 Posição do mouse -> X: {mousex}, Y: {mousey}")
+
+                    pg.moveTo(mousex, mousey)
+                    if pressed_d == 0:
+                        pg.click()
     elif comando.lower() == "start eval":
         print(comando)
     else:
