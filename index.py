@@ -1,6 +1,8 @@
 import socket
 import pyautogui as pg
 import base64
+import time
+import keyboard
 
 def salvar_imagem(imagem_base64):
     try:
@@ -25,23 +27,25 @@ while True:
         imagem_base64 = client_socket.recv(100000000).decode()  # Recebe a string base64 da imagem
         salvar_imagem(imagem_base64)
     elif msg_resposta.lower() == "start-control mouse":
-        print("🔄 Controle do mouse ativado!")
-        resposta = client_socket.recv(1024).decode()
-        print(resposta)  # Confirmação do cliente
-
+        print("🔄 Controle do mouse ativado!\nD - Clique")
         while True:
-            acao = input("\nComando do mouse (move x y, click, scroll valor, stop): ")
+            if keyboard.is_pressed("f"):
+                break
+            # acao = input("\nComando para parar (stop-control mouse): ")
 
-            if acao.lower() == "stop":
-                client_socket.sendall(acao.encode())
-                print("❌ Controle do mouse desativado.")
-                break  # Sai do modo controle do mouse
+            # if acao.lower() == "stop":
+            #     client_socket.sendall(acao.encode())
+            #     print("❌ Controle do mouse desativado.")
+            #     break  # Sai do modo controle do mouse
             
-            client_socket.sendall(acao.encode())  # Envia ação para o cliente
-            resposta = client_socket.recv(1024).decode()  # Recebe resposta do cliente
-            print(f"Resposta do cliente: {resposta}")
-    else:
-        resposta = client_socket.recv(4096).decode()
-        print(f"Resposta do cliente:\n{resposta}")
+            mousex, mousey = pg.position()
+            pressed_d = 1
+            if keyboard.is_pressed("d"):
+                pressed_d = 0
+            client_socket.sendall(f"{str(mousex)},{str(mousey)},{str(pressed_d)}\n".encode())
+            time.sleep(0.2)
+    # else:
+    #     resposta = client_socket.recv(4096).decode()
+    #     print(f"Resposta do cliente:\n{resposta}")
 
 client_socket.close()
