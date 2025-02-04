@@ -44,8 +44,8 @@ while True:
                 pressed_d = 0
             client_socket.sendall(f"{str(mousex)},{str(mousey)},{str(pressed_d)}\n".encode())
             time.sleep(0.2)
-    # else:
-    #     resposta = client_socket.recv(4096).decode()
-    #     print(f"Resposta do cliente:\n{resposta}")
+    else:
+        resposta = client_socket.recv(4096).decode()
+        print(f"Resposta do cliente:\n{resposta}")
 
 client_socket.close()
